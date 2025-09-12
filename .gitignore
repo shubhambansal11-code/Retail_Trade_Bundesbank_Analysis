@@ -1,0 +1,84 @@
+# ========================
+# Python standard ignores
+# ========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+.eggs/
+*.manifest
+*.spec
+
+# ========================
+# Jupyter / IPython
+# ========================
+.ipynb_checkpoints
+*.ipynb_checkpoints
+
+# ========================
+# Data files
+# ========================
+/data/*
+!data/README.md        # keep placeholder if you want
+*.csv
+*.xlsx
+*.xls
+*.parquet
+*.json
+*.zip
+
+# ========================
+# Figures / Plots
+# ========================
+*.png
+*.jpg
+*.jpeg
+*.svg
+*.pdf
+
+# ========================
+# Streamlit / Cache
+# ========================
+.streamlit/
+**/.streamlit/
+**/.cache/
+.cache/
+*.log
+
+# ========================
+# Virtual Environments
+# ========================
+venv/
+env/
+.venv/
+ENV/
+env.bak/
+
+# ========================
+# OS-specific
+# ========================
+.DS_Store
+Thumbs.db
+
+# ========================
+# IDE-specific
+# ========================
+.vscode/
+.idea/
+
+# ========================
+# Models
+# ========================
+/trained_models.pkl
+*.pkl
+*.joblib
+
+# ========================
+# Misc
+# ========================
+*.bak
+*.swp
+*.tmp

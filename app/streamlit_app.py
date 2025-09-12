@@ -128,7 +128,7 @@ for sector in selected_sectors:
         """
     )
 
-    st.subheader("📊 Probability & Inventory Planning")
+    st.subheader("Probability & Inventory Planning")
     fig2 = plot_probability_and_inventory(dataset.index, probabilities, inv, inventory_threshold, sector)
     st.pyplot(fig2)
 

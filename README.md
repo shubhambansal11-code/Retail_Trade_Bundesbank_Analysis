@@ -73,7 +73,7 @@ streamlit run app/streamlit_app.py
 
 # Next Steps/ TO DOs
 
-1. Add in the README about the notebook functions, explain repo structure, what features were tested, which models were accurate, less accurate, conclusion as to how we reach using Logistic Regression
+1. Add in the README about the notebook functions, explain repo structure, what features were tested, which models were accurate, less accurate, conclusion as to how we select Logistic Regression
 
 2. Include some backtesting, make a dedicated test/ folder
 

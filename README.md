@@ -1,9 +1,9 @@
 # Retail_Trade_Bundesbank_Analysis
+
 This repository contains the files and software to run the Retail Trade Analysis on data from the Deutsche Bundesbank 
 
-###############
+
 # Workflow
-############### 
 
 Step 1: Load data
 
@@ -51,9 +51,7 @@ Calibrate revenue, inventory, and thresholds
 
 View forecasts, probabilities, and planning recommendations
 
-###############
 # How to Run
-############### 
 
 Step 1: Set up the dependencies listed in Requirements.txt. Install them with 
 
@@ -72,9 +70,8 @@ b. Run the Streamlit App (interactive dashboard)
 ```
 streamlit run app/streamlit_app.py
 ```
-###################
+
 # Next Steps/ TO DOs
-###################
 
 1. Add in the README about the notebook functions, explain repo structure, what features were tested, which models were accurate, less accurate, conclusion as to how we reach using Logistic Regression
 

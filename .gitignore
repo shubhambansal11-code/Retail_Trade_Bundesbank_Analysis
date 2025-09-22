@@ -38,6 +38,7 @@ __pycache__/
 *.jpeg
 *.svg
 *.pdf
+*.html
 
 # ========================
 # Streamlit / Cache

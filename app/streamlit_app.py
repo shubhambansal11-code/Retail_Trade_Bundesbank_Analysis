@@ -92,7 +92,7 @@ for sector in selected_sectors:
 
     # Compute expected forward change
     index_values = sectors_data[sector].reindex(dataset.index).values
-    mean_pos, mean_neg = probabilities.mean(), probabilities.mean()  # placeholder, could compute historical stats
+    mean_pos, mean_neg = probabilities.mean(), probabilities.mean()  # placeholder
     exp_fwd_pct = probabilities * mean_pos + (1 - probabilities) * mean_neg
     pred_idx = index_values * (1 + exp_fwd_pct / 100)
 
@@ -114,23 +114,42 @@ for sector in selected_sectors:
         sector,
         forecast_start_idx=len(dataset.index) - prediction_horizon,
     )
-    st.pyplot(fig1)
+
+    fig1.update_layout(legend=dict(
+        orientation="h",          # horizontal legend
+        yanchor="bottom",
+        y=1.02,
+        xanchor="center",
+        x=0.5
+    ),
+    margin=dict(t=50, b=20, l=40, r=40))
+    st.plotly_chart(fig1, use_container_width=True)  
+
+
 
     st.markdown(
         """
         **Interpretation:**  
         1. Black line = historical revenue (scaled from index).  
-        2. Orange dashed line = forecasted revenue.  
+        2. Blue dashed line = forecasted revenue.  
         3. Gray shaded area = forecast horizon.  
 
-        If the forecasted orange line trends **up**, demand is expected to increase.  
+        If the forecasted line trends **up**, demand is expected to increase.  
         If it trends **down**, expect weaker sales.
         """
     )
 
     st.subheader("Probability & Inventory Planning")
     fig2 = plot_probability_and_inventory(dataset.index, probabilities, inv, inventory_threshold, sector)
-    st.pyplot(fig2)
+    fig2.update_layout(legend=dict(
+        orientation="h", 
+        yanchor="bottom",
+        y=1.02,
+        xanchor="center",
+        x=0.5
+    ),
+    margin=dict(t=50, b=20, l=40, r=40))
+    st.plotly_chart(fig2, use_container_width=True)
 
     st.markdown(
         """

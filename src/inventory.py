@@ -8,9 +8,12 @@ import numpy as np
 import pandas as pd
 from src.config import INVENTORY_THRESHOLD, SHORTAGE_ALPHA
 
+np.random.seed(42)
+
 # Here is a function to help define simulating an inventory
-def simulate_inventory(dataset_index, seed=42):
-    np.random.seed(seed)
+def simulate_inventory(dataset_index, seed=None):
+    if seed is not None:
+        np.random.seed(seed)
     rw = np.cumsum(np.random.randn(len(dataset_index)) * 0.02) + 0.75
     inv_series = pd.Series(np.clip(rw, 0.2, 1.0), index=dataset_index)
     return inv_series

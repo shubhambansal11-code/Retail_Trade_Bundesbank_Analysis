@@ -42,6 +42,18 @@ shortage_alpha = st.sidebar.slider(
     help="Controls aggressiveness of restocking when shortages are predicted. Higher = stronger correction."
 )
 
+
+# -----------------------------
+# Inventory simulation note
+# -----------------------------
+st.sidebar.markdown("---")
+st.sidebar.markdown(
+    "**Note on Inventory Simulation:**\n"
+    "The inventory coverage values shown in the plots are generated each time "
+    "based on a random walk simulation. They are for demonstration purposes "
+    "and may vary between runs."
+)
+
 st.sidebar.markdown("---")
 st.sidebar.markdown("**Note on Revenues**")
 st.sidebar.write(

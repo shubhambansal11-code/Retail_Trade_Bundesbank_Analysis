@@ -24,7 +24,7 @@ sectors_data = load_all_sectors()
 sectors = list(sectors_data.columns)
 selected_sectors = st.sidebar.multiselect("Select sectors to display", sectors, default=sectors)
 
-prediction_horizon = st.sidebar.slider("Prediction horizon (months)", min_value=1, max_value=12, value=6)
+# prediction_horizon = st.sidebar.slider("Prediction horizon (months)", min_value=1, max_value=6, value=6)
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("Business Calibration")
@@ -124,7 +124,8 @@ for sector in selected_sectors:
         revenue_now,
         revenue_pred,
         sector,
-        forecast_start_idx=len(dataset.index) - prediction_horizon,
+        #forecast_start_idx=len(dataset.index) - prediction_horizon,
+        #forecast_start_idx=len(dataset.index) - 6,
     )
 
     fig1.update_layout(legend=dict(

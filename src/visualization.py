@@ -46,10 +46,11 @@ def plot_revenue_vs_prediction(idx, revenue_now, revenue_pred, sector, forecast_
         #title=f"{sector} — Current vs Predicted Revenue",
         title="Current vs Predicted Revenue",
         yaxis=dict(
-            title="Revenue (€) / Index units",
+            title="Revenue (€)",
             tickformat=",.0f"  # forces commas, no scientific notation
         ),
-        xaxis=dict(title="Date"),
+        #xaxis=dict(title="Date"),
+        xaxis=dict(title="Year"),
         legend=dict(x=0.01, y=0.99, borderwidth=0),
         template="plotly_white"
     )

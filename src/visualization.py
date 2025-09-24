@@ -112,7 +112,7 @@ def plot_probability_and_inventory(idx, probabilities, inventory, threshold, sec
     fig.update_layout(
         #title=f"{sector} — Probability vs Inventory",
         title="Probability vs Inventory",
-        xaxis=dict(title="Date"),
+        xaxis=dict(title="Year"),
         yaxis=dict(title="Probability / Inventory %", range=[0, 1.05]),
         legend=dict(x=0.01, y=0.99, borderwidth=0),
         template="plotly_white"

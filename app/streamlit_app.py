@@ -42,7 +42,6 @@ shortage_alpha = st.sidebar.slider(
     help="Controls aggressiveness of restocking when shortages are predicted. Higher = stronger correction."
 )
 
-
 # -----------------------------
 # Inventory simulation note
 # -----------------------------
@@ -113,17 +112,27 @@ for sector in selected_sectors:
     revenue_now = (index_values / last_index) * BASE_REVENUE_LATEST[sector]
     revenue_pred = (pred_idx / last_index) * BASE_REVENUE_LATEST[sector]
 
-    inv = inventory_pct[sector]
+    inv = inventory_pct[sector] # at the moment keeping this still the same, need to see what can be changed
+
+    # Shift predictions 6 months ahead
+    future_dates = dataset.index + pd.DateOffset(months=6)
+    revenue_pred_shifted = pd.Series(revenue_pred, index=future_dates)
+
+    # Keep only July-Dec 2025 forecast
+    forecast_start = dataset.index[-1] + pd.DateOffset(months=1)
+    forecast_end = dataset.index[-1] + pd.DateOffset(months=6)
+    revenue_future = revenue_pred_shifted.loc[forecast_start:forecast_end]
 
     # -----------------------------
-    # Plots + Explanations
+    # Plot 1: Forecast (only July to Dec 2025)
     # -----------------------------
-    st.subheader("Revenue Forecast")
+    st.subheader("6-Month Ahead Forecast (July to Dec 2025)")
     fig1 = plot_revenue_vs_prediction(
-        dataset.index,
-        revenue_now,
-        revenue_pred,
+        revenue_future.index,
+        None,
+        revenue_future.values,
         sector,
+        forecast_start_idx=0
         #forecast_start_idx=len(dataset.index) - prediction_horizon,
         #forecast_start_idx=len(dataset.index) - 6,
     )
@@ -138,23 +147,52 @@ for sector in selected_sectors:
     margin=dict(t=50, b=20, l=40, r=40))
     st.plotly_chart(fig1, use_container_width=True)  
 
+    #st.markdown(
+        #"""
+        #**Interpretation:**
+        #1. 
+        #"""
+    #)
 
+    # st.markdown(
+    #     """
+    #     **Interpretation:**  
+    #     1. Black line = historical revenue (scaled from index).  
+    #     2. Blue dashed line = forecasted revenue.  
+    #     3. Gray shaded area = forecast horizon.  
 
-    st.markdown(
-        """
-        **Interpretation:**  
-        1. Black line = historical revenue (scaled from index).  
-        2. Blue dashed line = forecasted revenue.  
-        3. Gray shaded area = forecast horizon.  
+    #     If the forecasted line trends **up**, demand is expected to increase.  
+    #     If it trends **down**, expect weaker sales.
+    #     """
+    # )
 
-        If the forecasted line trends **up**, demand is expected to increase.  
-        If it trends **down**, expect weaker sales.
-        """
+    # -----------------------------
+    # Plot 2: Historical + Forecast comparison
+    # ----------------------------- 
+    
+    # st.subheader("Historical vs Forecast (with Horizon Highlight)")
+    # fig2 = plot_revenue_vs_prediction(
+    #      list(dataset.index) + list(revenue_future.index),
+    #      list(revenue_now) + list(revenue_future.values),
+    #      list(revenue_pred_shifted.loc[forecast_start:].values),
+    #      sector,
+    #      forecast_start_idx=len(dataset.index)
+    # )
+
+    st.subheader("Historical vs Forecast")
+    fig2 = plot_revenue_vs_prediction(
+         dataset.index,
+         revenue_now,
+         revenue_pred,
+         sector,
+         forecast_start_idx=len(dataset.index)
     )
 
+    st.plotly_chart(fig2, use_container_width=True)     
+
     st.subheader("Probability & Inventory Planning")
-    fig2 = plot_probability_and_inventory(dataset.index, probabilities, inv, inventory_threshold, sector)
-    fig2.update_layout(legend=dict(
+    fig3 = plot_probability_and_inventory(dataset.index, probabilities, inv, inventory_threshold, sector)
+    fig3.update_layout(legend=dict(
         orientation="h", 
         yanchor="bottom",
         y=1.02,
@@ -162,7 +200,7 @@ for sector in selected_sectors:
         x=0.5
     ),
     margin=dict(t=50, b=20, l=40, r=40))
-    st.plotly_chart(fig2, use_container_width=True)
+    st.plotly_chart(fig3, use_container_width=True)
 
     st.markdown(
         """

@@ -18,33 +18,49 @@ def plot_revenue_vs_prediction(idx, revenue_now, revenue_pred, sector, forecast_
     os.makedirs(save_dir, exist_ok=True)
 
     fig = go.Figure()
+    
+    # Only add historical if provided
+    if revenue_now is not None:
+        fig.add_trace(go.Scatter(
+            x=idx, y=revenue_now,
+            mode="lines", name="Current revenue (proxy)",
+            line=dict(color="black", width=2)
+        )) 
 
     # Current revenue
-    fig.add_trace(go.Scatter(
-        x=idx, y=revenue_now,
-        mode="lines", name="Current revenue (proxy)",
-        line=dict(color="black", width=2)
-    ))
+    # fig.add_trace(go.Scatter(
+    #     x=idx, y=revenue_now,
+    #     mode="lines", name="Current revenue (proxy)",
+    #     line=dict(color="black", width=2)
+    # ))
+    
+    # Predicted revenue
+    if revenue_pred is not None:
+        fig.add_trace(go.Scatter(
+            x=idx, y=revenue_pred,
+            mode="lines", name="Predicted revenue (Logistic)",
+            line = dict(dash="dash", color="blue")
+        ))
 
     # Predicted revenue
-    fig.add_trace(go.Scatter(
-        x=idx, y=revenue_pred,
-        mode="lines", name="Predicted revenue (Logistic)",
-        line=dict(dash="dash", color="blue")
-    ))
+    # fig.add_trace(go.Scatter(
+    #     x=idx, y=revenue_pred,
+    #     mode="lines", name="Predicted revenue (Logistic)",
+    #     line=dict(dash="dash", color="blue")
+    # ))
 
     # Highlight forecast horizon
     if forecast_start_idx is not None and forecast_start_idx < len(idx):
         fig.add_vrect(
             x0=idx[forecast_start_idx], x1=idx[-1],
-            fillcolor="lightgray", opacity=0.3,
-            layer="below", line_width=0,
-            annotation_text="Forecast horizon", annotation_position="top left"
+            fillcolor="white", opacity=0.3,
+            layer="below", line_width=0
+            #annotation_text="Forecast horizon", annotation_position="top left"
         )
 
     fig.update_layout(
         #title=f"{sector} — Current vs Predicted Revenue",
-        title="Current vs Predicted Revenue",
+        #title="Current vs Predicted Revenue",
         yaxis=dict(
             title="Revenue (€)",
             tickformat=",.0f"  # forces commas, no scientific notation

@@ -33,7 +33,6 @@ b. Probability of “Up in 6 months”
 
 c. Inventory coverage plots
 
-d. [TO DO]: Add more plots
 
 Step 6: Pipeline orchestration
 
@@ -47,7 +46,7 @@ app/streamlit_app.py provides a Streamlit dashboard where users can:
 
 Select sectors
 
-Calibrate revenue, inventory, and thresholds
+Calibrate inventory and thresholds
 
 View forecasts, probabilities, and planning recommendations
 

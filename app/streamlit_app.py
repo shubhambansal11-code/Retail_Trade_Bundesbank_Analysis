@@ -133,8 +133,6 @@ for sector in selected_sectors:
         revenue_future.values,
         sector,
         forecast_start_idx=0
-        #forecast_start_idx=len(dataset.index) - prediction_horizon,
-        #forecast_start_idx=len(dataset.index) - 6,
     )
 
     fig1.update_layout(legend=dict(
@@ -147,39 +145,13 @@ for sector in selected_sectors:
     margin=dict(t=50, b=20, l=40, r=40))
     st.plotly_chart(fig1, use_container_width=True)  
 
-    #st.markdown(
-        #"""
-        #**Interpretation:**
-        #1. 
-        #"""
-    #)
-
-    # st.markdown(
-    #     """
-    #     **Interpretation:**  
-    #     1. Black line = historical revenue (scaled from index).  
-    #     2. Blue dashed line = forecasted revenue.  
-    #     3. Gray shaded area = forecast horizon.  
-
-    #     If the forecasted line trends **up**, demand is expected to increase.  
-    #     If it trends **down**, expect weaker sales.
-    #     """
-    # )
+    # Add interpretation here
 
     # -----------------------------
     # Plot 2: Historical + Forecast comparison
     # ----------------------------- 
-    
-    # st.subheader("Historical vs Forecast (with Horizon Highlight)")
-    # fig2 = plot_revenue_vs_prediction(
-    #      list(dataset.index) + list(revenue_future.index),
-    #      list(revenue_now) + list(revenue_future.values),
-    #      list(revenue_pred_shifted.loc[forecast_start:].values),
-    #      sector,
-    #      forecast_start_idx=len(dataset.index)
-    # )
 
-    st.subheader("Historical vs Forecast")
+    st.subheader("Historical Data vs Forecast Data")
     fig2 = plot_revenue_vs_prediction(
          dataset.index,
          revenue_now,
@@ -211,8 +183,8 @@ for sector in selected_sectors:
         4. Red dots = inventory below threshold (risky).  
 
         **Scenarios:**  
-        1. *Orange high* & *Green below red*: ** Restock aggressively** (demand high, stock low).  
-        2. *Orange low* & *Green above red*: ** Safe to delay/reduce orders** (demand weak, stock healthy).  
+        1. *Orange high* & *Green below red*: **Restock aggressively** (demand high, stock low).  
+        2. *Orange low* & *Green above red*: **Safe to delay/reduce orders** (demand weak, stock healthy).  
         3. *Orange high* & *Green above red*: **Moderate adjustment** (demand strong, but inventory ok).  
         4. *Orange low* & *Green below red*: **Tricky case** — demand weak but stock short. Restock cautiously.
         """

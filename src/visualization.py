@@ -42,12 +42,6 @@ def plot_revenue_vs_prediction(idx, revenue_now, revenue_pred, sector, forecast_
             line = dict(dash="dash", color="blue")
         ))
 
-    # Predicted revenue
-    # fig.add_trace(go.Scatter(
-    #     x=idx, y=revenue_pred,
-    #     mode="lines", name="Predicted revenue (Logistic)",
-    #     line=dict(dash="dash", color="blue")
-    # ))
 
     # Highlight forecast horizon
     if forecast_start_idx is not None and forecast_start_idx < len(idx):
@@ -59,8 +53,6 @@ def plot_revenue_vs_prediction(idx, revenue_now, revenue_pred, sector, forecast_
         )
 
     fig.update_layout(
-        #title=f"{sector} — Current vs Predicted Revenue",
-        #title="Current vs Predicted Revenue",
         yaxis=dict(
             title="Revenue (€)",
             tickformat=",.0f"  # forces commas, no scientific notation

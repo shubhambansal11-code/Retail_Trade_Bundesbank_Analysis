@@ -1,7 +1,10 @@
-# The lines below give a global path, otherwise path errors sweep in
+# streamlit_app.py
+
+# -----------------------------
+# Imports & Path Setup
+# -----------------------------
 import sys
 from pathlib import Path
-
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 import streamlit as st
@@ -12,186 +15,189 @@ import pickle
 from src.data_loader import load_all_sectors
 from src.features import build_dataset
 from src.visualization import plot_revenue_vs_prediction, plot_probability_and_inventory
-from src.config import BASE_REVENUE_LATEST, INVENTORY_THRESHOLD
+from src.config import BASE_REVENUE_LATEST
 
 # -----------------------------
 # Sidebar: User Inputs
 # -----------------------------
 st.sidebar.title("Retail Forecast Inputs")
 
-# Load all sectors
+# Load sector data
 sectors_data = load_all_sectors()
 sectors = list(sectors_data.columns)
-selected_sectors = st.sidebar.multiselect("Select sectors to display", sectors, default=sectors)
 
-# prediction_horizon = st.sidebar.slider("Prediction horizon (months)", min_value=1, max_value=6, value=6)
+# Restrict to single selection
+selected_sector = st.sidebar.selectbox("Select sector", sectors)
+
+# Forecast horizon (3–12 months)
+forecast_horizon = st.sidebar.slider("Forecast horizon (months)", min_value=5, max_value=12, value=6)
+
+# Fixed confidence/error margin = 95%
+error_pct = 0.05  
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("Business Calibration")
 
-# Business calibration inputs
 inventory_threshold = st.sidebar.slider(
-    "Inventory threshold",
-    0.0, 1.0, 0.4,
-    help="The minimum coverage level below which inventory is considered risky."
+    "Inventory threshold", 0.0, 1.0, 0.4,
+    help="Minimum coverage level below which inventory is risky."
 )
 
 shortage_alpha = st.sidebar.slider(
-    "Shortage amplifier",
-    0.0, 5.0, 1.0,
-    help="Controls aggressiveness of restocking when shortages are predicted. Higher = stronger correction."
+    "Shortage amplifier", 0.0, 5.0, 1.0,
+    help="Controls aggressiveness of restocking when shortages are predicted."
 )
 
-# -----------------------------
-# Inventory simulation note
-# -----------------------------
 st.sidebar.markdown("---")
-st.sidebar.markdown(
-    "**Note on Inventory Simulation:**\n"
-    "The inventory coverage values shown in the plots are generated each time "
-    "based on a random walk simulation. They are for demonstration purposes "
-    "and may vary between runs."
+st.sidebar.markdown("**Note on Inventory Simulation:**\n"
+    "Inventory values are simulated with a random walk for demo purposes. "
+    "They may vary between runs."
 )
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("**Note on Revenues**")
 st.sidebar.write(
     """
-    Default baseline revenues are assumed for scaling forecasts (in €):  
-    1. Electronics: **€5M**  
-    2. Groceries: **€12M**  
-    3. Textiles: **€2M**  
-    4. Furniture: **€1.5M**  
-    5. Pharmacy: **€3M**  
-    6. Motor Vehicles: **€8M**  
+    Baseline revenues used for scaling forecasts (in €):  
+    - Electronics: **€5M**  
+    - Groceries: **€12M**  
+    - Textiles: **€2M**  
+    - Furniture: **€1.5M**  
+    - Pharmacy: **€3M**  
+    - Motor Vehicles: **€8M**  
 
-    These serve as calibration anchors so that index predictions are shown in **monetary terms**, making the results more actionable for planning.
+    These serve as calibration anchors so predictions are shown in **monetary terms**.
     """
 )
 
 # -----------------------------
-# Load dataset
+# Load dataset + models
 # -----------------------------
 dataset = build_dataset(sectors_data)
-
-# Load trained models
 with open("trained_models.pkl", "rb") as f:
     trained_models = pickle.load(f)
 
 # -----------------------------
-# Simulate Inventory (random walk for demo purposes)
+# Simulate Inventory (random walk simulation)
 # -----------------------------
 inventory_pct = {}
 for s in sectors:
     n = len(dataset.index)
     rw = np.cumsum(np.random.randn(n) * 0.02) + 0.75
-    inv_series = pd.Series(np.clip(rw, 0.2, 1.0), index=dataset.index)
-    inventory_pct[s] = inv_series
+    inventory_pct[s] = pd.Series(np.clip(rw, 0.2, 1.0), index=dataset.index)
 
 # -----------------------------
-# Main Loop: Forecast per sector
+# Tabs for Forecast & Insights
 # -----------------------------
-for sector in selected_sectors:
+forecast_tab, insights_tab = st.tabs(["Forecast", "Business Insights"])
+
+# -----------------------------
+# Forecast Tab
+# -----------------------------
+with forecast_tab:
+    st.title("Forecasts")
+
+    sector = selected_sector
     st.header(f"{sector} Forecast")
 
-    y = dataset[f"{sector}_target"]
+    # Features + model
     X = dataset[[col for col in dataset.columns if col.startswith(sector) and not col.endswith("_target")] + ["Month"]]
-
-    # Predict using pre-trained model
     lr_model = trained_models[sector]
     probabilities = lr_model.predict_proba(X)[:, 1]
 
     # Compute expected forward change
     index_values = sectors_data[sector].reindex(dataset.index).values
-    mean_pos, mean_neg = probabilities.mean(), probabilities.mean()  # placeholder
-    exp_fwd_pct = probabilities * mean_pos + (1 - probabilities) * mean_neg
+    mean_prob = probabilities.mean()
+    exp_fwd_pct = probabilities * mean_prob + (1 - probabilities) * mean_prob
     pred_idx = index_values * (1 + exp_fwd_pct / 100)
 
-    # Scale into revenue terms
+    # Scale into revenue
     last_index = sectors_data[sector].iloc[-1]
     revenue_now = (index_values / last_index) * BASE_REVENUE_LATEST[sector]
     revenue_pred = (pred_idx / last_index) * BASE_REVENUE_LATEST[sector]
 
-    inv = inventory_pct[sector] # at the moment keeping this still the same, need to see what can be changed
-
-    # Shift predictions 12 months ahead
-    future_dates = dataset.index + pd.DateOffset(months=12)
+    # Shift predictions
+    future_dates = dataset.index + pd.DateOffset(months=forecast_horizon)
     revenue_pred_shifted = pd.Series(revenue_pred, index=future_dates)
 
-    # Keep only July 2025-June 2026 forecast, added a note in the markdown
     forecast_start = dataset.index[-1] + pd.DateOffset(months=1)
-    forecast_end = dataset.index[-1] + pd.DateOffset(months=12)
+    forecast_end = dataset.index[-1] + pd.DateOffset(months=forecast_horizon)
     revenue_future = revenue_pred_shifted.loc[forecast_start:forecast_end]
 
     # -----------------------------
-    # Plot 1: Forecast (July 2025 to Dec 2025)
+    # Fig 1: Future Forecast
     # -----------------------------
-    st.subheader("12-Month Ahead Forecast (July 2025 to June 2026)")
+    st.subheader(f"{forecast_horizon}-Month Ahead Forecast")
     fig1 = plot_revenue_vs_prediction(
         revenue_future.index,
         None,
         revenue_future.values,
         sector,
-        forecast_start_idx=0
+        forecast_start_idx=0,
+        error_pct=error_pct,
+        xaxis_type="month"
     )
-
-    fig1.update_layout(legend=dict(
-        orientation="h",          # horizontal legend
-        yanchor="bottom",
-        y=1.02,
-        xanchor="center",
-        x=0.5
-    ),
-    margin=dict(t=50, b=20, l=40, r=40))
-    st.plotly_chart(fig1, use_container_width=True)  
+    st.plotly_chart(fig1, use_container_width=True)
 
     st.markdown(
+        f"""
+        **Note:** Forecasts beyond 6 months should be treated with caution due to limited macroeconomic time-series training.  
+
+        Horizon: **{forecast_horizon} months**  
+        Confidence band: 95%
         """
-        **Note:**  
-        Forecasts beyond 6 months (from January 2026) should be treated with caution, since the model is logistic regression on limited macroeconomic time-series data. Projections too far ahead may **lose reliability**  
-        """
-    ) 
-    # Add interpretation here
+    )
 
     # -----------------------------
-    # Plot 2: Historical + Forecast comparison
-    # ----------------------------- 
-
-    st.subheader("Historical Data vs Forecast Data")
+    # Fig 2: Historical + Forecast
+    # -----------------------------
+    st.subheader("Historical vs Forecast")
     fig2 = plot_revenue_vs_prediction(
-         dataset.index,
-         revenue_now,
-         revenue_pred,
-         sector,
-         forecast_start_idx=len(dataset.index)
+        dataset.index,
+        revenue_now,
+        revenue_pred,
+        sector,
+        forecast_start_idx=len(dataset.index),
+        error_pct=error_pct,
+        xaxis_type="year"
     )
+    st.plotly_chart(fig2, use_container_width=True)
 
-    st.plotly_chart(fig2, use_container_width=True)     
+# -----------------------------
+# Insights Tab
+# -----------------------------
+with insights_tab:
+    st.title("Business Insights")
 
-    st.subheader("Probability & Inventory Planning")
+    sector = selected_sector
+    st.header(f"{sector} Planning Insights")
+
+    probabilities = trained_models[sector].predict_proba(
+        dataset[[col for col in dataset.columns if col.startswith(sector) and not col.endswith("_target")] + ["Month"]]
+    )[:, 1]
+    inv = inventory_pct[sector]
+
+    # Fig 3: Probabilities & Inventory
     fig3 = plot_probability_and_inventory(dataset.index, probabilities, inv, inventory_threshold, sector)
-    fig3.update_layout(legend=dict(
-        orientation="h", 
-        yanchor="bottom",
-        y=1.02,
-        xanchor="center",
-        x=0.5
-    ),
-    margin=dict(t=50, b=20, l=40, r=40))
     st.plotly_chart(fig3, use_container_width=True)
+
+    # -----------------------------
+    # Recommendations
+    # -----------------------------
+    st.subheader("Inventory Strategy Recommendations")
 
     st.markdown(
         """
-        **How to interpret:**  
-        1. Orange line = Demand probability.  
-        2. Green line = inventory coverage.  
-        3. Red dashed line = safety threshold.  
-        4. Red dots = inventory below threshold (risky).  
+        **Safe to delay/reduce orders**  
+        *Demand weak, stock healthy* → Maintain or slow down orders.  
 
-        **Scenarios:**  
-        1. *Orange high* & *Green below red*: **Restock aggressively** (demand high, stock low).  
-        2. *Orange low* & *Green above red*: **Safe to delay/reduce orders** (demand weak, stock healthy).  
-        3. *Orange high* & *Green above red*: **Moderate adjustment** (demand strong, but inventory ok).  
-        4. *Orange low* & *Green below red*: **Tricky case** — demand weak but stock short. Restock cautiously.
+        **Restock aggressively**  
+        *Demand high, stock below threshold* → Increase purchasing quickly.  
+
+        **Moderate adjustment**  
+        *Demand strong, stock healthy* → Adjust orders upward slightly, no urgency.  
+
+        **Caution zone**  
+        *Demand weak, stock below threshold* → Delay large purchases, monitor closely.
         """
     )

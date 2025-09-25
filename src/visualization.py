@@ -3,7 +3,9 @@ import os
 import numpy as np
 import plotly.graph_objects as go
 
-def plot_revenue_vs_prediction(idx, revenue_now, revenue_pred, sector, forecast_start_idx=None, save_dir="figures"):
+def plot_revenue_vs_prediction(idx, revenue_now, revenue_pred, sector,
+                               forecast_start_idx=None, error_pct=0.05,
+                               xaxis_type="year", save_dir="figures"):
     """
     Interactive plot of current vs predicted revenue using Plotly.
 
@@ -13,35 +15,39 @@ def plot_revenue_vs_prediction(idx, revenue_now, revenue_pred, sector, forecast_
         revenue_pred: np.array or pd.Series of predicted revenue/index
         sector: str, name of the sector
         forecast_start_idx: int, index to start forecast shading
-        save_dir: str, directory to save figure
+        error_pct: float, error band size (default 0.05 = 95%)
+        xaxis_type: "month" for monthly view, "year" for yearly ticks
     """
     os.makedirs(save_dir, exist_ok=True)
 
     fig = go.Figure()
-    
-    # Only add historical if provided
+
+    # Historical line
     if revenue_now is not None:
         fig.add_trace(go.Scatter(
             x=idx, y=revenue_now,
             mode="lines", name="Current revenue (proxy)",
             line=dict(color="black", width=2)
-        )) 
+        ))
 
-    # Current revenue
-    # fig.add_trace(go.Scatter(
-    #     x=idx, y=revenue_now,
-    #     mode="lines", name="Current revenue (proxy)",
-    #     line=dict(color="black", width=2)
-    # ))
-    
-    # Predicted revenue
+    # Predicted + error band
     if revenue_pred is not None:
+        upper = np.array(revenue_pred) * (1 + error_pct)
+        lower = np.array(revenue_pred) * (1 - error_pct)
+        fig.add_trace(go.Scatter(
+            x=idx, y=upper, mode="lines", line=dict(width=0),
+            showlegend=False, hoverinfo="skip"
+        ))
+        fig.add_trace(go.Scatter(
+            x=idx, y=lower, mode="lines", line=dict(width=0),
+            fill="tonexty", fillcolor="rgba(0,0,255,0.1)",
+            name=f"95% Confidence Band"
+        ))
         fig.add_trace(go.Scatter(
             x=idx, y=revenue_pred,
             mode="lines", name="Predicted revenue (Logistic)",
-            line = dict(dash="dash", color="blue")
+            line=dict(dash="dash", color="blue")
         ))
-
 
     # Highlight forecast horizon
     if forecast_start_idx is not None and forecast_start_idx < len(idx):
@@ -49,18 +55,23 @@ def plot_revenue_vs_prediction(idx, revenue_now, revenue_pred, sector, forecast_
             x0=idx[forecast_start_idx], x1=idx[-1],
             fillcolor="white", opacity=0.3,
             layer="below", line_width=0
-            #annotation_text="Forecast horizon", annotation_position="top left"
         )
+
+    # X-axis formatting
+    if xaxis_type == "month":
+        xaxis_cfg = dict(title="Month", tickformat="%b %Y")
+    else:  # yearly ticks
+        xaxis_cfg = dict(title="Year", dtick="M12", tickformat="%Y")
 
     fig.update_layout(
         yaxis=dict(
             title="Revenue (€)",
-            tickformat=",.0f"  # forces commas, no scientific notation
+            tickformat=",.0f"
         ),
-        #xaxis=dict(title="Date"),
-        xaxis=dict(title="Year"),
-        legend=dict(x=0.01, y=0.99, borderwidth=0),
-        template="plotly_white"
+        xaxis=xaxis_cfg,
+        legend=dict(orientation="h", yanchor="bottom", y=-0.3, xanchor="center", x=0.5),
+        template="plotly_white",
+        margin=dict(t=50, b=80, l=40, r=40)
     )
 
     # Save interactive HTML
@@ -73,41 +84,29 @@ def plot_revenue_vs_prediction(idx, revenue_now, revenue_pred, sector, forecast_
 def plot_probability_and_inventory(idx, probabilities, inventory, threshold, sector, save_dir="figures"):
     """
     Interactive plot of logistic regression probability vs inventory %.
-
-    Args:
-        idx: pd.DatetimeIndex or list of timestamps
-        probabilities: np.array or pd.Series of P(up in 6m)
-        inventory: np.array or pd.Series of inventory coverage (0–1, percentage)
-        threshold: float, inventory threshold
-        sector: str, sector name
-        save_dir: str, directory to save figure
     """
     os.makedirs(save_dir, exist_ok=True)
 
     fig = go.Figure()
 
-    # Probability line
     fig.add_trace(go.Scatter(
         x=idx, y=probabilities,
         mode="lines", name="P(Up in 6m) - Logistic",
         line=dict(color="orange")
     ))
 
-    # Inventory line
     fig.add_trace(go.Scatter(
         x=idx, y=inventory,
         mode="lines", name="Inventory %",
         line=dict(color="green")
     ))
 
-    # Threshold line
     fig.add_trace(go.Scatter(
         x=idx, y=[threshold] * len(idx),
         mode="lines", name=f"Threshold ({threshold*100:.0f}%)",
         line=dict(color="red", dash="dash")
     ))
 
-    # Highlight shortage points
     shortage_mask = inventory < threshold
     fig.add_trace(go.Scatter(
         x=np.array(idx)[shortage_mask],
@@ -118,15 +117,14 @@ def plot_probability_and_inventory(idx, probabilities, inventory, threshold, sec
     ))
 
     fig.update_layout(
-        #title=f"{sector} — Probability vs Inventory",
         title="Probability vs Inventory",
-        xaxis=dict(title="Year"),
+        xaxis=dict(title="Year", dtick="M12", tickformat="%Y"),
         yaxis=dict(title="Probability / Inventory %", range=[0, 1.05]),
-        legend=dict(x=0.01, y=0.99, borderwidth=0),
-        template="plotly_white"
+        legend=dict(orientation="h", yanchor="bottom", y=-0.3, xanchor="center", x=0.5),
+        template="plotly_white",
+        margin=dict(t=50, b=80, l=40, r=40)
     )
 
-    # Save interactive HTML
     file_path = f"{save_dir}/{sector}_probability_inventory.html"
     fig.write_html(file_path)
 

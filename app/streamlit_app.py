@@ -114,19 +114,19 @@ for sector in selected_sectors:
 
     inv = inventory_pct[sector] # at the moment keeping this still the same, need to see what can be changed
 
-    # Shift predictions 6 months ahead
-    future_dates = dataset.index + pd.DateOffset(months=6)
+    # Shift predictions 12 months ahead
+    future_dates = dataset.index + pd.DateOffset(months=12)
     revenue_pred_shifted = pd.Series(revenue_pred, index=future_dates)
 
-    # Keep only July-Dec 2025 forecast
+    # Keep only July 2025-June 2026 forecast, added a note in the markdown
     forecast_start = dataset.index[-1] + pd.DateOffset(months=1)
-    forecast_end = dataset.index[-1] + pd.DateOffset(months=6)
+    forecast_end = dataset.index[-1] + pd.DateOffset(months=12)
     revenue_future = revenue_pred_shifted.loc[forecast_start:forecast_end]
 
     # -----------------------------
-    # Plot 1: Forecast (only July to Dec 2025)
+    # Plot 1: Forecast (July 2025 to Dec 2025)
     # -----------------------------
-    st.subheader("6-Month Ahead Forecast (July to Dec 2025)")
+    st.subheader("12-Month Ahead Forecast (July 2025 to June 2026)")
     fig1 = plot_revenue_vs_prediction(
         revenue_future.index,
         None,
@@ -145,6 +145,12 @@ for sector in selected_sectors:
     margin=dict(t=50, b=20, l=40, r=40))
     st.plotly_chart(fig1, use_container_width=True)  
 
+    st.markdown(
+        """
+        **Note:**  
+        Forecasts beyond 6 months (from January 2026) should be treated with caution, since the model is logistic regression on limited macroeconomic time-series data. Projections too far ahead may **lose reliability**  
+        """
+    ) 
     # Add interpretation here
 
     # -----------------------------
@@ -177,7 +183,7 @@ for sector in selected_sectors:
     st.markdown(
         """
         **How to interpret:**  
-        1. Orange line = probability demand will rise in the months input from the sidebar.  
+        1. Orange line = Demand probability.  
         2. Green line = inventory coverage.  
         3. Red dashed line = safety threshold.  
         4. Red dots = inventory below threshold (risky).  

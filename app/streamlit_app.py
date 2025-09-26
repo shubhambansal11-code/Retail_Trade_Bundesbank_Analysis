@@ -141,8 +141,8 @@ with forecast_tab:
 
     st.markdown(
         f"""
-        **Note:** Forecasts beyond 6 months should be treated with caution due to limited macroeconomic time-series training.  
-
+        **Note:** Forecasts beyond 6 months should be treated with caution due to limited macroeconomic time-series training. The model used is Logistic regression,
+        which served as the best model among Random Forest, Decision Trees, Prophet in terms of high accuracy and low error-rates.
         Horizon: **{forecast_horizon} months**  
         Confidence band: 95%
         """

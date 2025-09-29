@@ -1,5 +1,3 @@
-# streamlit_app.py
-
 # -----------------------------
 # Imports & Path Setup
 # -----------------------------
@@ -29,7 +27,7 @@ sectors = list(sectors_data.columns)
 # Restrict to single selection
 selected_sector = st.sidebar.selectbox("Select sector", sectors)
 
-# Forecast horizon (3–12 months)
+# Forecast horizon (5–12 months)
 forecast_horizon = st.sidebar.slider("Forecast horizon (months)", min_value=5, max_value=12, value=6)
 
 # Fixed confidence/error margin = 95%
@@ -137,14 +135,15 @@ with forecast_tab:
         error_pct=error_pct,
         xaxis_type="month"
     )
-    st.plotly_chart(fig1, use_container_width=True)
+    st.plotly_chart(fig1, use_container_width=True, key="future_forecast")
 
     st.markdown(
         f"""
-        **Note:** Forecasts beyond 6 months should be treated with caution due to limited macroeconomic time-series training. The model used is Logistic regression,
-        which is the best model among all other tested models namely, Random Forest, Decision Trees, Prophet in terms of high accuracy and low error-rates.
+        **Note:** Forecasts beyond 6 months should be treated with caution due to limited macroeconomic time-series training.  
+        The model used is **Logistic Regression**, which performed best compared to Random Forest, Decision Trees, and Prophet.  
+
         Horizon: **{forecast_horizon} months**  
-        Confidence band: 95%
+        Confidence band: **95%**
         """
     )
 
@@ -161,7 +160,7 @@ with forecast_tab:
         error_pct=error_pct,
         xaxis_type="year"
     )
-    st.plotly_chart(fig2, use_container_width=True)
+    st.plotly_chart(fig2, use_container_width=True, key="hist_vs_forecast")
 
 # -----------------------------
 # Insights Tab
@@ -179,25 +178,85 @@ with insights_tab:
 
     # Fig 3: Probabilities & Inventory
     fig3 = plot_probability_and_inventory(dataset.index, probabilities, inv, inventory_threshold, sector)
-    st.plotly_chart(fig3, use_container_width=True)
+    st.plotly_chart(fig3, use_container_width=True, key="prob_inventory")
 
     # -----------------------------
-    # Recommendations
+    # Current Scenario
     # -----------------------------
-    st.subheader("Inventory Strategy Recommendations")
+    st.subheader("Current Scenario")
 
+    latest_prob = probabilities[-1]
+    latest_inv = inv.iloc[-1]
+
+    if latest_prob > 0.6 and latest_inv < inventory_threshold:
+        scenario = "Restock aggressively"
+        explanation = f"Demand probability is **{latest_prob:.2f} (>0.6, strong demand)** and inventory is **{latest_inv:.2f} (<{inventory_threshold}, low stock)**."
+        recommendation = "Increase stock levels by **25–40%** immediately to avoid shortages."
+    elif latest_prob > 0.6 and latest_inv >= inventory_threshold:
+        scenario = "Moderate adjustment"
+        explanation = f"Demand probability is **{latest_prob:.2f} (>0.6, strong demand)** and inventory is **{latest_inv:.2f} (≥{inventory_threshold}, healthy)**."
+        recommendation = "Increase orders moderately by **5–10%**."
+    elif latest_prob <= 0.6 and latest_inv >= inventory_threshold:
+        scenario = "Safe to reduce orders"
+        explanation = f"Demand probability is **{latest_prob:.2f} (≤0.6, weak demand)** and inventory is **{latest_inv:.2f} (≥{inventory_threshold}, healthy)**."
+        recommendation = "Reduce incoming orders by **10–15%**."
+    else:
+        scenario = "Caution zone"
+        explanation = f"Demand probability is **{latest_prob:.2f} (≤0.6, weak demand)** and inventory is **{latest_inv:.2f} (<{inventory_threshold}, low stock)**."
+        recommendation = "Restock minimally (**~5%**) and closely monitor demand signals."
+
+    if scenario == "Safe to reduce orders" or scenario == "Moderate adjustment":
+        st.info(f"### **{scenario}**")
+    if scenario == "Caution zone":
+        st.warning(f"### **{scenario}**")
+    if scenario == "Restock aggressively":  
+        st.error(f"### **{scenario}**")   
+    st.write(explanation)
+    st.markdown(f"**Recommended Action:** {recommendation}")
+
+    st.markdown("---")
     st.markdown(
-        """
-        **Safe to delay/reduce orders**  
-        *Demand weak, stock healthy* → Maintain or slow down orders.  
-
-        **Restock aggressively**  
-        *Demand high, stock below threshold* → Increase purchasing quickly.  
-
-        **Moderate adjustment**  
-        *Demand strong, stock healthy* → Adjust orders upward slightly, no urgency.  
-
-        **Caution zone**  
-        *Demand weak, stock below threshold* → Delay large purchases, monitor closely.
-        """
+        "### Learn about all Possible Scenarios\n"
+        "Each scenario is determined by a combination of **demand probability** (>0.6 = strong, ≤0.6 = weak) "
+        "and **inventory levels** (≥ threshold = healthy, < threshold = low). "
+        "Click the tabs below to see explanations and recommended actions."
     )
+
+    # -----------------------------
+    # Scenario Tabs
+    # -----------------------------
+    tab1, tab2, tab3, tab4 = st.tabs(
+        ["Safe to reduce orders", "Restock aggressively", "Moderate adjustment", "Caution zone"]
+    )
+
+    with tab1:
+        #st.info("### Safe to reduce orders")
+        st.write("**Criteria:** Demand probability ≤0.6 (weak) + Inventory ≥ threshold (healthy).")
+        st.write("**Explanation:** Demand is expected to be low while stock is sufficient, reducing risk of shortages.")
+        st.write("**Recommended Action:** Reduce orders by **10–15%**.")
+        fig = plot_probability_and_inventory(dataset.index, probabilities, inv, inventory_threshold, sector)
+        #st.plotly_chart(fig, use_container_width=True, key="scenario_safe_reduce")
+
+    with tab2:
+        #st.error("### Restock aggressively")
+        st.write("**Criteria:** Demand probability >0.6 (strong) + Inventory < threshold (low).")
+        st.write("**Explanation:** Demand is strong but inventory is insufficient, creating high risk of stockouts.")
+        st.write("**Recommended Action:** Restock by **25–40%** immediately.")
+        fig = plot_probability_and_inventory(dataset.index, probabilities, inv, inventory_threshold, sector)
+        #st.plotly_chart(fig, use_container_width=True, key="scenario_restock_aggressive")
+
+    with tab3:
+        #st.info("### Moderate adjustment")
+        st.write("**Criteria:** Demand probability >0.6 (strong) + Inventory ≥ threshold (healthy).")
+        st.write("**Explanation:** Strong demand is expected but inventory is at safe levels, reducing urgency.")
+        st.write("**Recommended Action:** Increase orders by **5–10%**.")
+        fig = plot_probability_and_inventory(dataset.index, probabilities, inv, inventory_threshold, sector)
+        #st.plotly_chart(fig, use_container_width=True, key="scenario_moderate_adjustment")
+
+    with tab4:
+        #st.warning("### Caution zone")
+        st.write("**Criteria:** Demand probability ≤0.6 (weak) + Inventory < threshold (low).")
+        st.write("**Explanation:** Demand is weak while inventory is already low, meaning extra orders may not convert to sales.")
+        st.write("**Recommended Action:** Restock minimally (**~5%**) and monitor closely.")
+        fig = plot_probability_and_inventory(dataset.index, probabilities, inv, inventory_threshold, sector)
+        #st.plotly_chart(fig, use_container_width=True, key="scenario_caution_zone")

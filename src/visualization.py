@@ -91,7 +91,8 @@ def plot_probability_and_inventory(idx, probabilities, inventory, threshold, sec
 
     fig.add_trace(go.Scatter(
         x=idx, y=probabilities,
-        mode="lines", name="P(Up in 6m) - Logistic",
+        #mode="lines", name="P(Up in 6m) - Logistic",
+        mode="lines", name="Demand Probability",
         line=dict(color="orange")
     ))
 

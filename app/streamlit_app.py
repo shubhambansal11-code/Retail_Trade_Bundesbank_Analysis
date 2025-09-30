@@ -1,3 +1,5 @@
+# streamlit_app.py
+
 # -----------------------------
 # Imports & Path Setup
 # -----------------------------
@@ -18,7 +20,7 @@ from src.config import BASE_REVENUE_LATEST
 # -----------------------------
 # Sidebar: User Inputs
 # -----------------------------
-st.sidebar.title("Retail Forecast Inputs")
+st.sidebar.header("Forecast Inputs")
 
 # Load sector data
 sectors_data = load_all_sectors()
@@ -33,8 +35,7 @@ forecast_horizon = st.sidebar.slider("Forecast horizon (months)", min_value=5, m
 # Fixed confidence/error margin = 95%
 error_pct = 0.05  
 
-st.sidebar.markdown("---")
-st.sidebar.subheader("Business Calibration")
+st.sidebar.header("Business Calibration Inputs")
 
 inventory_threshold = st.sidebar.slider(
     "Inventory threshold", 0.0, 1.0, 0.4,
@@ -84,6 +85,23 @@ for s in sectors:
     rw = np.cumsum(np.random.randn(n) * 0.02) + 0.75
     inventory_pct[s] = pd.Series(np.clip(rw, 0.2, 1.0), index=dataset.index)
 
+st.title("Multi-sector retail trade analysis")
+st.write(
+        """
+        This project analyzes and forecasts retail trade sector revenues in Germany using
+        official data (until July 2025) from the **Deutsche Bundesbank** and demonstrate business insights for the coming months in 2025.
+        
+        Several machine learning and statistical models were tested:
+        - Random Forest  
+        - Decision Trees  
+        - Prophet  
+        - Logistic Regression  
+
+        After evaluation, **Logistic Regression** was chosen for its consistent predictive
+        performance across sectors.
+        """
+    )
+
 # -----------------------------
 # Tabs for Forecast & Insights
 # -----------------------------
@@ -93,10 +111,10 @@ forecast_tab, insights_tab = st.tabs(["Forecast", "Business Insights"])
 # Forecast Tab
 # -----------------------------
 with forecast_tab:
-    st.title("Forecasts")
+    #st.title("Forecasts")
 
     sector = selected_sector
-    st.header(f"{sector} Forecast")
+    st.header(f"{sector} Revenue Forecast")
 
     # Features + model
     X = dataset[[col for col in dataset.columns if col.startswith(sector) and not col.endswith("_target")] + ["Month"]]
@@ -141,9 +159,6 @@ with forecast_tab:
         f"""
         **Note:** Forecasts beyond 6 months should be treated with caution due to limited macroeconomic time-series training.  
         The model used is **Logistic Regression**, which performed best compared to Random Forest, Decision Trees, and Prophet.  
-
-        Horizon: **{forecast_horizon} months**  
-        Confidence band: **95%**
         """
     )
 
@@ -166,7 +181,7 @@ with forecast_tab:
 # Insights Tab
 # -----------------------------
 with insights_tab:
-    st.title("Business Insights")
+    #st.title("Business Insights")
 
     sector = selected_sector
     st.header(f"{sector} Planning Insights")
@@ -175,7 +190,8 @@ with insights_tab:
         dataset[[col for col in dataset.columns if col.startswith(sector) and not col.endswith("_target")] + ["Month"]]
     )[:, 1]
     inv = inventory_pct[sector]
-
+    
+    st.subheader("Probability vs Inventory")
     # Fig 3: Probabilities & Inventory
     fig3 = plot_probability_and_inventory(dataset.index, probabilities, inv, inventory_threshold, sector)
     st.plotly_chart(fig3, use_container_width=True, key="prob_inventory")
@@ -204,13 +220,12 @@ with insights_tab:
         scenario = "Caution zone"
         explanation = f"Demand probability is **{latest_prob:.2f} (≤0.6, weak demand)** and inventory is **{latest_inv:.2f} (<{inventory_threshold}, low stock)**."
         recommendation = "Restock minimally (**~5%**) and closely monitor demand signals."
-
-    if scenario == "Safe to reduce orders" or scenario == "Moderate adjustment":
-        st.info(f"### **{scenario}**")
-    if scenario == "Caution zone":
-        st.warning(f"### **{scenario}**")
-    if scenario == "Restock aggressively":  
-        st.error(f"### **{scenario}**")   
+    if scenario == "Safe to reduce orders" or scenario == "Moderate adjustment": 
+        st.info(f"### **{scenario}**") 
+    if scenario == "Caution zone": 
+        st.warning(f"### **{scenario}**") 
+    if scenario == "Restock aggressively": 
+        st.error(f"### **{scenario}**") 
     st.write(explanation)
     st.markdown(f"**Recommended Action:** {recommendation}")
 
@@ -260,3 +275,4 @@ with insights_tab:
         st.write("**Recommended Action:** Restock minimally (**~5%**) and monitor closely.")
         fig = plot_probability_and_inventory(dataset.index, probabilities, inv, inventory_threshold, sector)
         #st.plotly_chart(fig, use_container_width=True, key="scenario_caution_zone")
+

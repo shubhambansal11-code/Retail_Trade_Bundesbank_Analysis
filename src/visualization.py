@@ -118,7 +118,7 @@ def plot_probability_and_inventory(idx, probabilities, inventory, threshold, sec
     ))
 
     fig.update_layout(
-        title="Probability vs Inventory",
+        title="",
         xaxis=dict(title="Year", dtick="M12", tickformat="%Y"),
         yaxis=dict(title="Probability / Inventory %", range=[0, 1.05]),
         legend=dict(orientation="h", yanchor="bottom", y=-0.3, xanchor="center", x=0.5),

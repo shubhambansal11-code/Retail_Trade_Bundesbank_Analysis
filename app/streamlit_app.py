@@ -157,9 +157,9 @@ with forecast_tab:
 
     st.markdown(
         f"""
-        **Note:** Forecasts beyond 6 months should be treated with caution due to limited macroeconomic time-series training.  
+        **Note:** Forecasts beyond 6 months should be treated with caution due to limited macroeconomic time-series training.    
         """
-     )
+    )
 
     # -----------------------------
     # Fig 2: Historical + Forecast
@@ -274,4 +274,3 @@ with insights_tab:
         st.write("**Recommended Action:** Restock minimally (**~5%**) and monitor closely.")
         fig = plot_probability_and_inventory(dataset.index, probabilities, inv, inventory_threshold, sector)
         #st.plotly_chart(fig, use_container_width=True, key="scenario_caution_zone")
-

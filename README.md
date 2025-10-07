@@ -5,25 +5,25 @@ This repository contains the files and software to run the Retail Trade Analysis
 
 # Workflow
 
-Step 1: Load data
+### Step 1: Load data
 
 src/data_loader.py fetches sector-level retail indices from the Bundesbank API.
 
-Step 2: Feature engineering
+### Step 2: Feature engineering
 
 src/features.py creates lagged variables, rolling statistics, growth rates, and target labels (6-month forward YoY).
 
-Step 3: Model training
+### Step 3: Model training
 
 src/model.py trains a Logistic Regression classifier (wrapped in a pipeline with scaling + one-hot encoding).
 
 Models are saved in serialized form (.pkl) for reuse in the Streamlit app.
 
-Step 4: Inventory logic
+### Step 4: Inventory logic
 
 src/inventory.py adjusts predictions based on inventory coverage, thresholds, and shortage amplification.
 
-Step 5: Plots and Visualization
+### Step 5: Plots and Visualization
 
 src/visualization.py produces:
 
@@ -32,13 +32,13 @@ a. Revenue/index forecast plots
 b. Inventory coverage plots
 
 
-Step 6: Pipeline orchestration
+### Step 6: Pipeline orchestration
 
 src/pipeline.py integrates all modules into a single workflow.
 
 Run via main.py.
 
-Step 7: Interactive dashboard
+### Step 7: Interactive dashboard
 
 app/streamlit_app.py provides a Streamlit dashboard where users can:
 

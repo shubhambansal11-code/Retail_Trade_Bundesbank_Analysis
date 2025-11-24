@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: streamlit-ingress
+  namespace: retail-forecast
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    # Optional: redirect www to apex, TLS, etc.
+spec:
+  rules:
+    - host: streamlit.your-domain.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: streamlit-svc
+                port:
+                  number: 80

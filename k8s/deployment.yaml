@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: streamlit-deploy
+  namespace: retail-forecast
+  labels:
+    app: streamlit-retail
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: streamlit-retail
+  template:
+    metadata:
+      labels:
+        app: streamlit-retail
+    spec:
+      # Uncomment the next 2 lines if your image is private
+      # imagePullSecrets:
+      #   - name: ghcr-pull-secret
+      containers:
+        - name: streamlit
+          image: ghcr.io/shubhambansal11-code/retail-forecast-app:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8501
+          env:
+            # Example: if you later externalize configs
+            - name: STREAMLIT_SERVER_PORT
+              value: "8501"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8501
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 2
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8501
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            timeoutSeconds: 2
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"

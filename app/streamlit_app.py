@@ -157,7 +157,7 @@ with forecast_tab:
 
     st.markdown(
         f"""
-        **Note:** Forecasts beyond 6 months should be treated with caution due to limited macroeconomic time-series training.    
+        **Note:** Forecasts beyond 6 months should be treated with caution due to limited macroeconomic time-series data used for training.    
         """
     )
 

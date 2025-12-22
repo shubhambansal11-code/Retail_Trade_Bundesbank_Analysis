@@ -89,7 +89,7 @@ st.title("Multi-sector retail trade analysis")
 st.write(
         """
         This project analyzes and forecasts retail trade sector revenues in Germany using
-        official data (until July 2025) from the **Deutsche Bundesbank** and demonstrate business insights for the coming months in 2025.
+        official data (until September 2025) from the **Deutsche Bundesbank** and demonstrate business insights using the trained model.
         
         Several machine learning and statistical models were tested:
         - Random Forest  

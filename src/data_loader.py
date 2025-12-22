@@ -18,4 +18,5 @@ def load_csv(url: str, sector: str) -> pd.DataFrame:
 def load_all_sectors() -> pd.DataFrame:
     dfs = [load_csv(url, sector) for sector, url in BUNDESBANK_URLS.items()]
     data = pd.concat(dfs, axis=1).dropna()
+    #print("Data covers from", data.index.min(), "to", data.index.max())
     return data

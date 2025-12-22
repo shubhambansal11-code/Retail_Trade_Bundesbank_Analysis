@@ -21,7 +21,6 @@ def run_pipeline():
     sectors = data.columns
 
     for sector in sectors:
-        print(f"\n=== {sector} ===")
         idx = dataset.index
         y = dataset[f"{sector}_target"]
         X = dataset[
@@ -29,8 +28,10 @@ def run_pipeline():
             + ["Month"]
         ]
 
-        # 1. Logistic regression → probabilities
-        prob_all, _ = train_logistic_regression(X, y)
+        # 1. Logistic regression into probabilities, fix unpacking!
+        #prob_all, _ = train_logistic_regression(X, y)
+        pipeline = train_logistic_regression(X, y)
+        prob_all = pipeline.predict_proba(X)[:, 1]
 
         # 2. Convert probability into expected forward 6% change
         mean_pos, mean_neg, _ = compute_forward6_stats(data[sector])

@@ -20,7 +20,7 @@ from src.config import BASE_REVENUE_LATEST
 # -----------------------------
 # Sidebar: User Inputs
 # -----------------------------
-st.sidebar.header("Forecast Inputs")
+st.sidebar.header("Inputs")
 
 # Load sector data
 sectors_data = load_all_sectors()
@@ -35,17 +35,17 @@ forecast_horizon = st.sidebar.slider("Forecast horizon (months)", min_value=5, m
 # Fixed confidence/error margin = 95%
 error_pct = 0.05  
 
-st.sidebar.header("Business Calibration Inputs")
+#st.sidebar.header("Business Calibration Inputs")
 
 inventory_threshold = st.sidebar.slider(
-    "Inventory threshold", 0.0, 1.0, 0.4,
+    "Inventory threshold (for Business calibration)", 0.0, 1.0, 0.4,
     help="Minimum coverage level below which inventory is risky."
 )
 
-shortage_alpha = st.sidebar.slider(
-    "Shortage amplifier", 0.0, 5.0, 1.0,
-    help="Controls aggressiveness of restocking when shortages are predicted."
-)
+#shortage_alpha = st.sidebar.slider(
+    #"Shortage amplifier", 0.0, 5.0, 1.0,
+    #help="Controls aggressiveness of restocking when shortages are predicted."
+#)
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("**Note on Inventory Simulation:**\n"
@@ -198,6 +198,13 @@ with insights_tab:
     # Current Scenario
     # -----------------------------
     st.subheader("Current Scenario")
+    #st.caption("This scenario is based on the latest available data and reflects a **6-month forward-looking demand outlook** "
+    #"given current economic conditions.")
+
+    st.markdown(
+        f"""
+        **Note:** This scenario is based on the latest available data and reflects a **6-month forward-looking demand outlook**.
+        """)
 
     latest_prob = probabilities[-1]
     latest_inv = inv.iloc[-1]

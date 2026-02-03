@@ -65,5 +65,5 @@ python main.py
 b. Run the Streamlit App (interactive dashboard)
 
 ```
-streamlit run app/streamlit_app.py
+python -m streamlit run app/streamlit_app.py
 ```

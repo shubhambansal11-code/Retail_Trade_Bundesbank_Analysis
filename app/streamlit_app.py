@@ -24,6 +24,12 @@ st.sidebar.header("Inputs")
 
 # Load sector data
 sectors_data = load_all_sectors()
+
+# Fetch the latest available month and year
+latest_date = pd.to_datetime(sectors_data.index.max())
+latest_date_str = latest_date.strftime("%B %Y")
+#print(latest_date_str)
+
 sectors = list(sectors_data.columns)
 
 # Restrict to single selection
@@ -87,19 +93,20 @@ for s in sectors:
 
 st.title("Multi-sector retail trade analysis")
 st.write(
-        """
-        This project analyzes and forecasts retail trade sector revenues in Germany using official data from the **Deutsche Bundesbank** (available through October 2025) and demonstrates business insights derived from the trained model.
-        
-        Several machine learning and statistical models were tested:
-        - Random Forest  
-        - Decision Trees  
-        - Prophet  
-        - Logistic Regression  
+    f"""
+    This project analyzes and forecasts retail trade sector revenues in Germany using official data from the **Deutsche Bundesbank**
+    (available through {latest_date_str}) and demonstrates business insights derived from the trained model.
+    
+    Several machine learning and statistical models were tested:
+    - Random Forest  
+    - Decision Trees  
+    - Prophet  
+    - Logistic Regression  
 
-        After evaluation, **Logistic Regression** was chosen for its consistent predictive
-        performance across sectors.
-        """
-    )
+    After evaluation, **Logistic Regression** was chosen for its consistent predictive
+    performance across sectors.
+    """
+)
 
 # -----------------------------
 # Tabs for Forecast & Insights

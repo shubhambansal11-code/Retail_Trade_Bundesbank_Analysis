@@ -71,7 +71,7 @@ st.sidebar.write(
     - Pharmacy: **€3M**  
     - Motor Vehicles: **€8M**  
 
-    These serve as calibration anchors so predictions are shown in **monetary terms**.
+    These baselines serve as calibration anchors such that predictions are shown in **monetary terms**.
     """
 )
 
